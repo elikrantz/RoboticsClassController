@@ -35,9 +35,9 @@ public class teleOpForClassRobot extends LinearOpMode {
     private double speed2Default = 0.7;
     private double servoSpeed = 0;
     private static final double minArmBasePos = 0; //Degrees
-    private static final double maxArmBasePos = 0.53; //Degrees
+    private static final double maxArmBasePos = 2000; //Degrees
     private static final double minArmElbowPos = 0; //Degrees
-    private static final double maxArmElbowPos = 0.53; //Degrees
+    private static final double maxArmElbowPos = 2000; //Degrees
     private static final double startArmBasePos = 0; //Degrees
     private static final double startArmElbowPos = 0; //Degrees
     private static final double minArmWristPos = 0;
@@ -110,17 +110,18 @@ public class teleOpForClassRobot extends LinearOpMode {
             currentGamepad1.copy(gamepad1); /** copies the current gamepad1 state **/
             previousGamepad2.copy(currentGamepad2); /** copies the previous loop's gamepad2 state **/
             currentGamepad2.copy(gamepad2); /** copies the current gamepad2 state **/
-            Speed(); /** a very magical and mystical function that is complicated but not really **/
+            //Speed(); /** a very magical and mystical function that is complicated but not really **/
             if (Math.abs(gamepad1.left_stick_x) <= 0.05 && Math.abs(gamepad1.left_stick_y) <= 0.05) { /** Disclaimer!!!: robot oriented is priority not field **/ /** this is the statment that switches between field and robot oriented drive does this by checking if left joystick isn't being moved **/
                 fieldOriented();
             } else {
                 robotOriented();
             }
-            Arm();
-            Intake();
+            ArmTest();
+            //Arm();
+            //Intake();
             //Outtake();
             //LiftHold();
-            LiftWorks();
+            //LiftWorks();
             telemetry.addData("speed1", speed1);
             telemetry.addData("speed2", speed2);
             //telemetry.addData("touchpad X: ", currentGamepad2.touchpad_finger_1_x);
@@ -136,11 +137,11 @@ public class teleOpForClassRobot extends LinearOpMode {
         backLeft = hardwareMap.dcMotor.get("backLeft"); /** Port: ControlHub MotorPort 0 **/
         frontRight = hardwareMap.dcMotor.get("frontRight"); /** Port: ExpansionHub MotorPort 3 **/
         backRight = hardwareMap.dcMotor.get("backRight"); /** Port: ExpansionHub MotorPort 2 **/
-        armBase = hardwareMap.dcMotor.get("liftLeft"); /** Port: ControlHub MotorPort 2 **/
-        armElbow = hardwareMap.dcMotor.get("liftRight"); /** Port: ExpansionHub MotorPort 1 **/
-        armWrist = hardwareMap.servo.get("intakeArm"); /** Port: ExpansionHub ServoPort 5 **/
-        clawLeft = hardwareMap.servo.get("intakeRamp"); /** Port: ControlHub ServoPort 5 **/
-        clawRight = hardwareMap.servo.get("droneLauncher"); /** Port: Control ServoPort 3 **/
+        armBase = hardwareMap.dcMotor.get("armBase"); /** Port: ControlHub MotorPort 2 **/
+        armElbow = hardwareMap.dcMotor.get("armElbow"); /** Port: ExpansionHub MotorPort 1 **/
+        armWrist = hardwareMap.servo.get("armWrist"); /** Port: ExpansionHub ServoPort 5 **/
+        clawLeft = hardwareMap.servo.get("clawLeft"); /** Port: ControlHub ServoPort 5 **/
+        clawRight = hardwareMap.servo.get("clawRight"); /** Port: Control ServoPort 3 **/
         //wristLeft = hardwareMap.servo.get("wristLeft"); /** Port: ExpansionHub ServoPort 3 **/
         //wristRight = hardwareMap.servo.get("wristRight"); /** Port: ExpansionHub ServoPort 5 **/
 
@@ -154,7 +155,7 @@ public class teleOpForClassRobot extends LinearOpMode {
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        //armBase.setDirection(DcMotorSimple.Direction.REVERSE);
+        armBase.setDirection(DcMotorSimple.Direction.REVERSE);
         //armElbow.setDirection(DcMotorSimple.Direction.REVERSE);
 
         armBase.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -162,6 +163,8 @@ public class teleOpForClassRobot extends LinearOpMode {
 
 
         armWristPos = startArmWristPos;
+        armBasePos = 0;
+        armElbowPos = 0;
 
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
@@ -360,6 +363,26 @@ public class teleOpForClassRobot extends LinearOpMode {
         wristRight.setPosition(wristPos);
         telemetry.addData("wristPos: ","Left: %f, Right: %f",wristLeft.getPosition(),wristRight.getPosition());
         telemetry.addData("wristPosition: ", wristPos);*/
+    }
+    private void ArmTest(){
+        double changeAmount = 10;
+        if (gamepad2.circle) {armBasePos += changeAmount;}
+        if (gamepad2.cross) {armBasePos -= changeAmount;}
+        if (gamepad2.triangle) {armElbowPos += changeAmount;}
+        if (gamepad2.square) {armElbowPos -= changeAmount;}
+        armBasePos = Range.clip(armBasePos,minArmBasePos,maxArmBasePos);
+        armElbowPos = Range.clip(armElbowPos,minArmElbowPos,maxArmElbowPos);
+        armBase.setTargetPosition((int)armBasePos);
+        armElbow.setTargetPosition((int)armElbowPos);
+        armBase.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armElbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armBase.setPower(0.5);
+        armElbow.setPower(0.5);
+        telemetry.addData("armBasePos: ","Set: %f, Actual: %d",armBasePos,armBase.getCurrentPosition());
+        telemetry.addData("armElbowPos: ","Set: %f, Actual: %d",armElbowPos,armElbow.getCurrentPosition());
+    }
+    private double countsToDegrees(double counts) {
+        return (counts / 537.7) * 360;
     }
     private void Arm() {
         //
