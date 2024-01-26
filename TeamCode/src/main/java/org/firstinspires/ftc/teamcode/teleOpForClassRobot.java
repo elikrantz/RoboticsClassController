@@ -346,9 +346,17 @@ public class teleOpForClassRobot extends LinearOpMode {
         backRight.setPower(backRightPower);
     }
     private void Intake() {
-        if (gamepad2.cross) {clawToggle = true;} else if (gamepad2.circle) {clawToggle = false;}
-        if (clawToggle) {clawLeft.setPosition(maxClawPos);clawRight.setPosition(maxClawPos);}
-        if (!clawToggle) {clawLeft.setPosition(minClawPos);clawRight.setPosition(minClawPos);}
+        if (gamepad2.left_bumper) {clawToggle = true;} else if (gamepad2.right_bumper) {clawToggle = false;}
+        if (clawToggle) {
+            clawLeft.setPosition(maxClawPos);
+            clawRight.setPosition(maxClawPos);
+        } else if (!clawToggle && 5==4) {
+            clawLeft.setPosition(minClawPos);
+            clawRight.setPosition(minClawPos);
+        } else {
+            clawLeft.setPosition(0);
+            clawRight.setPosition(0);
+        }
         telemetry.addData("intakeArmPos: ",clawRight.getPosition());
     }
     private void Outtake() {
@@ -365,7 +373,7 @@ public class teleOpForClassRobot extends LinearOpMode {
         telemetry.addData("wristPosition: ", wristPos);*/
     }
     private void ArmTest(){
-        double changeAmount = 10;
+        double changeAmount = 0;
         if (gamepad2.circle) {armBasePos += changeAmount;}
         if (gamepad2.cross) {armBasePos -= changeAmount;}
         if (gamepad2.triangle) {armElbowPos += changeAmount;}
