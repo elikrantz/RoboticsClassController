@@ -44,7 +44,7 @@ public class teleOpForClassRobot extends LinearOpMode {
     private static final double maxArmWristPos = 1.2;
     private static final double startArmWristPos = 0;
     private static final double minClawPos = 0;
-    private static final double maxClawPos = 1.2;
+    private static final double maxClawPos = 0.25;
     private double previousSpeed1;
     private double previousSpeed2;
     private int iterationsPressed1 = 0;
@@ -118,7 +118,7 @@ public class teleOpForClassRobot extends LinearOpMode {
             }
             ArmTest();
             //Arm();
-            //Intake();
+            Intake();
             //Outtake();
             //LiftHold();
             //LiftWorks();
@@ -348,15 +348,19 @@ public class teleOpForClassRobot extends LinearOpMode {
     private void Intake() {
         if (gamepad2.left_bumper) {clawToggle = true;} else if (gamepad2.right_bumper) {clawToggle = false;}
         if (clawToggle) {
-            clawLeft.setPosition(maxClawPos);
-            clawRight.setPosition(maxClawPos);
-        } else if (!clawToggle && 5==4) {
             clawLeft.setPosition(minClawPos);
-            clawRight.setPosition(minClawPos);
+            clawRight.setPosition(maxClawPos);
         } else {
-            clawLeft.setPosition(0);
-            clawRight.setPosition(0);
+            clawLeft.setPosition(maxClawPos);
+            clawRight.setPosition(minClawPos);
         }
+        if (gamepad2.left_stick_y > 0.04) {
+            armWristPos += 0.01;
+        } else if (gamepad2.left_stick_y < -0.04) {
+            armWristPos -= 0.01;
+        }
+        armWristPos = Range.clip(armWristPos,0,1);
+        armWrist.setPosition(armWristPos);
         telemetry.addData("intakeArmPos: ",clawRight.getPosition());
     }
     private void Outtake() {
@@ -373,21 +377,21 @@ public class teleOpForClassRobot extends LinearOpMode {
         telemetry.addData("wristPosition: ", wristPos);*/
     }
     private void ArmTest(){
-        double changeAmount = 0;
+        double changeAmount = 1;
         if (gamepad2.circle) {armBasePos += changeAmount;}
         if (gamepad2.cross) {armBasePos -= changeAmount;}
-        if (gamepad2.triangle) {armElbowPos += changeAmount;}
-        if (gamepad2.square) {armElbowPos -= changeAmount;}
+        //if (gamepad2.triangle) {armElbowPos += changeAmount;}
+        //if (gamepad2.square) {armElbowPos -= changeAmount;}
         armBasePos = Range.clip(armBasePos,minArmBasePos,maxArmBasePos);
-        armElbowPos = Range.clip(armElbowPos,minArmElbowPos,maxArmElbowPos);
+        //armElbowPos = Range.clip(armElbowPos,minArmElbowPos,maxArmElbowPos);
         armBase.setTargetPosition((int)armBasePos);
-        armElbow.setTargetPosition((int)armElbowPos);
+        //armElbow.setTargetPosition((int)armElbowPos);
         armBase.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        armElbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //armElbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armBase.setPower(0.5);
-        armElbow.setPower(0.5);
+        //armElbow.setPower(0.5);
         telemetry.addData("armBasePos: ","Set: %f, Actual: %d",armBasePos,armBase.getCurrentPosition());
-        telemetry.addData("armElbowPos: ","Set: %f, Actual: %d",armElbowPos,armElbow.getCurrentPosition());
+        //telemetry.addData("armElbowPos: ","Set: %f, Actual: %d",armElbowPos,armElbow.getCurrentPosition());
     }
     private double countsToDegrees(double counts) {
         return (counts / 537.7) * 360;
